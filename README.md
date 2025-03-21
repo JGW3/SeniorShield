@@ -1,16 +1,43 @@
-# ftc_scraper
+# FTC Consumer Alerts Scraper
 
-scraper for FTC RSS feed
+An app that displays Federal Trade Commission (FTC) consumer alerts to help seniors and other users stay informed about the latest scams and consumer protection issues.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- Displays FTC consumer alerts in a clean, readable interface
+- Shows alert titles, publication dates, and summaries
+- Provides "Read More" links to full articles
+- Sorts alerts by date (newest first)
+- Caches data to minimize server requests (once per day)
 
-A few resources to get you started if this is your first Flutter project:
+## Technical Details
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Built with Flutter
+- Implements ethical web scraping practices (once-daily fetching)
+- Uses in-memory caching to reduce load on FTC servers
+- Properly identifies itself with a user agent string
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Setup
+
+1. Clone this repository
+2. Run `flutter pub get` to install dependencies
+3. Run `flutter run` to launch the app
+
+## Dependencies
+
+- http: ^1.1.0
+- html: ^0.15.4
+- intl: ^0.18.1
+- url_launcher: ^6.1.14
+- shared_preferences: ^2.2.0
+
+## Legal Considerations
+
+This app fetches publicly available information from the FTC website. It implements responsible scraping practices to minimize server load by:
+
+- Limiting requests to once per day
+- Including proper user agent identification
+- Caching results between sessions
+
+## License
+
