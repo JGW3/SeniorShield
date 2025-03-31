@@ -1,4 +1,5 @@
 // lib/models/ftc_alert.dart
+// lib/models/ftc_alert.dart
 class FtcAlert {
   final String title;
   final String link;
