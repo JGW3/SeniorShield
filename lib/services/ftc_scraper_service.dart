@@ -15,7 +15,19 @@ class FtcScraperService {
 
       if (response.statusCode == 200) {
         print('Response received with status: ${response.statusCode}');
-        return _parseAlerts(response.body);
+        var alerts = _parseAlerts(response.body);
+
+        // Deduplicate alerts based on URL
+        final Map<String, FtcAlert> uniqueAlerts = {};
+        for (var alert in alerts) {
+          if (!uniqueAlerts.containsKey(alert.link) ||
+              alert.summary.length < uniqueAlerts[alert.link]!.summary.length) {
+            uniqueAlerts[alert.link] = alert;
+          }
+        }
+
+        return uniqueAlerts.values.toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
       } else {
         throw Exception('Failed to load FTC alerts: ${response.statusCode}');
       }
