@@ -16,81 +16,120 @@ class FtcAlertsView extends StatefulWidget {
 class _FtcAlertsViewState extends State<FtcAlertsView> {
   final FtcScraperService _service = FtcScraperService();
   final CacheService _cacheService = CacheService();
-  late Future<List<FtcAlert>> _alertsFuture;
+  final ScrollController _scrollController = ScrollController();
+  List<FtcAlert> _alerts = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _error;
+  int _currentPage = 0;
+  bool _hasMoreData = true;
 
   @override
   void initState() {
     super.initState();
     _loadAlerts();
+
+    _scrollController.addListener(() {
+      // Debug scroll position
+      print('Scroll position: ${_scrollController.position.pixels}, max: ${_scrollController.position.maxScrollExtent}');
+
+      // More sensitive threshold (150px from bottom)
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 150) {
+        print('Near bottom, can load more: ${!_isLoadingMore && _hasMoreData}');
+        if (!_isLoadingMore && _hasMoreData) {
+          print('LOADING MORE ALERTS - Page ${_currentPage + 1}');
+          _loadMoreAlerts();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAlerts() async {
     setState(() {
       _isLoading = true;
       _error = null;
+      _currentPage = 0;
     });
 
     try {
       final shouldFetch = await _cacheService.shouldFetchFreshData();
-      print('Should fetch fresh data? $shouldFetch');
+      print('Should fetch fresh alerts? $shouldFetch');
 
-      // First try using cached data
-      if (!shouldFetch) {
-        final cachedAlerts = await _cacheService.getCachedAlerts();
-        print('Loaded ${cachedAlerts.length} cached alerts');
-
-        // If we have cached data, use it
-        if (cachedAlerts.isNotEmpty) {
-          print('Using cached data');
-          setState(() {
-            _alertsFuture = Future.value(cachedAlerts);
-            _isLoading = false;
-          });
-          return;
-        }
-        // Otherwise continue to fetch fresh data
-        print('Cache empty, fetching fresh data instead');
-      }
-
-      // Fetch fresh data
-      final alerts = await _service.fetchAlerts();
-      print('Fetched ${alerts.length} fresh alerts');
-      if (alerts.isNotEmpty) {
+      List<FtcAlert> alerts;
+      if (shouldFetch) {
+        print('Fetching fresh alerts');
+        alerts = await _service.fetchAlerts();
         await _cacheService.cacheAlerts(alerts);
-        setState(() {
-          _alertsFuture = Future.value(alerts);
-          _isLoading = false;
-        });
+        print('Fetched ${alerts.length} fresh alerts');
       } else {
-        setState(() {
-          _isLoading = false;
-          _error = "No alerts found from the server";
-        });
+        print('Loading alerts from cache');
+        alerts = await _cacheService.getCachedAlerts();
+        print('Loaded ${alerts.length} cached alerts');
       }
+
+      setState(() {
+        _alerts = alerts;
+        _isLoading = false;
+        // Always assume there's more data initially
+        _hasMoreData = true;
+      });
     } catch (e) {
       print('Error loading alerts: $e');
-      // Error handling remains the same
-      try {
-        final cachedAlerts = await _cacheService.getCachedAlerts();
-        if (cachedAlerts.isNotEmpty) {
-          setState(() {
-            _alertsFuture = Future.value(cachedAlerts);
-            _isLoading = false;
-          });
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadMoreAlerts() async {
+    if (_isLoadingMore || !_hasMoreData) {
+      print('Skip loading more: isLoading=$_isLoadingMore, hasMore=$_hasMoreData');
+      return;
+    }
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      _currentPage++;
+      print('Loading more alerts - page $_currentPage');
+      final moreAlerts = await _service.fetchAlerts(page: _currentPage);
+      print('Fetched ${moreAlerts.length} more alerts from page $_currentPage');
+
+      setState(() {
+        if (moreAlerts.isNotEmpty) {
+          // Filter out duplicates
+          final existingLinks = _alerts.map((a) => a.link).toSet();
+          final uniqueNewAlerts = moreAlerts
+              .where((alert) => !existingLinks.contains(alert.link))
+              .toList();
+
+          print('Adding ${uniqueNewAlerts.length} unique new alerts');
+          _alerts.addAll(uniqueNewAlerts);
+
+          // Only set _hasMoreData to false if we get ZERO results
+          _hasMoreData = moreAlerts.isNotEmpty;
         } else {
-          setState(() {
-            _isLoading = false;
-            _error = "Network error and no cached data available";
-          });
+          print('No more alerts found on page $_currentPage');
+          _hasMoreData = false;
         }
-      } catch (fallbackError) {
-        setState(() {
-          _isLoading = false;
-          _error = e.toString();
-        });
-      }
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      print('Error loading more alerts: $e');
+      setState(() {
+        _isLoadingMore = false;
+        // Don't disable pagination on error - retry on next scroll
+      });
     }
   }
 
@@ -118,22 +157,27 @@ class _FtcAlertsViewState extends State<FtcAlertsView> {
       );
     }
 
-    return FutureBuilder<List<FtcAlert>>(
-      future: _alertsFuture,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No alerts found'));
-        }
+    if (_alerts.isEmpty) {
+      return const Center(child: Text('No alerts found'));
+    }
 
-        final alerts = snapshot.data!;
-        return ListView.builder(
-          itemCount: alerts.length,
-          itemBuilder: (context, index) {
-            final alert = alerts[index];
-            return AlertCard(alert: alert);
-          },
-        );
-      },
+    return RefreshIndicator(
+      onRefresh: _loadAlerts,
+      child: ListView.builder(
+        controller: _scrollController,
+        itemCount: _alerts.length + (_hasMoreData ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == _alerts.length) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+          return AlertCard(alert: _alerts[index]);
+        },
+      ),
     );
   }
 }

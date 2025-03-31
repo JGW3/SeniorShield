@@ -1,4 +1,3 @@
-// lib/services/ftc_scraper_service.dart
 import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as parser;
 import 'package:html/dom.dart';
@@ -16,6 +15,12 @@ class FtcScraperService {
       if (response.statusCode == 200) {
         print('Response received with status: ${response.statusCode}');
         var alerts = _parseAlerts(response.body);
+
+        // Limit to 20 alerts per page as required
+        if (alerts.length > 20) {
+          print('Limiting results to 20 per page (found ${alerts.length})');
+          alerts = alerts.sublist(0, 20);
+        }
 
         // Deduplicate alerts based on URL
         final Map<String, FtcAlert> uniqueAlerts = {};
