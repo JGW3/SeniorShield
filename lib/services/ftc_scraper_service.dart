@@ -9,16 +9,16 @@ class FtcScraperService {
   Future<List<FtcAlert>> fetchAlerts({int page = 0}) async {
     try {
       final url = page == 0 ? baseUrl : '$baseUrl?page=$page';
-      print('Fetching alerts from $url (page $page)');
+    //  print('Fetching alerts from $url (page $page)');
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
-        print('Response received with status: ${response.statusCode}');
+      //  print('Response received with status: ${response.statusCode}');
         var alerts = _parseAlerts(response.body);
 
         // Limit to 20 alerts per page as required
         if (alerts.length > 20) {
-          print('Limiting results to 20 per page (found ${alerts.length})');
+      //    print('Limiting results to 20 per page (found ${alerts.length})');
           alerts = alerts.sublist(0, 20);
         }
 
@@ -37,7 +37,7 @@ class FtcScraperService {
         throw Exception('Failed to load FTC alerts: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error in fetchAlerts: $e');
+    //  print('Error in fetchAlerts: $e');
       throw Exception('Error fetching alerts: $e');
     }
   }
@@ -46,7 +46,7 @@ class FtcScraperService {
     final document = parser.parse(htmlString);
 
     // Print the first 100 characters of the document to debug
-    print('HTML preview: ${htmlString.substring(0, htmlString.length > 100 ? 100 : htmlString.length)}...');
+  //  print('HTML preview: ${htmlString.substring(0, htmlString.length > 100 ? 100 : htmlString.length)}...');
 
     // Try multiple selectors to find alert articles
     final alertSelectors = [
@@ -61,7 +61,7 @@ class FtcScraperService {
 
     for (final selector in alertSelectors) {
       alertElements = document.querySelectorAll(selector);
-      print('Selector "$selector" found ${alertElements.length} elements');
+    //  print('Selector "$selector" found ${alertElements.length} elements');
 
       if (alertElements.isNotEmpty) {
         break;
@@ -70,7 +70,7 @@ class FtcScraperService {
 
     // If still empty, try the XPath approach
     if (alertElements.isEmpty) {
-      print('Using XPath approach');
+    //  print('Using XPath approach');
       final mainContent = document.querySelector('main');
       if (mainContent != null) {
         // Navigate down the DOM structure based on the XPath
@@ -81,18 +81,18 @@ class FtcScraperService {
             .toList();
 
         if (alertContainer.isNotEmpty) {
-          print('Found ${alertContainer.length} potential containers');
+        //  print('Found ${alertContainer.length} potential containers');
           alertElements = alertContainer;
         }
       }
     }
 
     if (alertElements.isEmpty) {
-      print('No alert elements found with any selector');
+    //  print('No alert elements found with any selector');
       return [];
     }
 
-    print('Processing ${alertElements.length} alerts');
+  //  print('Processing ${alertElements.length} alerts');
     final alerts = alertElements.map((element) {
       // Extract title from heading element
       final titleElement = element.querySelector('h2, h3');
@@ -162,7 +162,7 @@ class FtcScraperService {
         return DateTime(year, month, day);
       }
     } catch (e) {
-      print('Date parsing error: $e');
+    //  print('Date parsing error: $e');
     }
 
     return DateTime.now();
