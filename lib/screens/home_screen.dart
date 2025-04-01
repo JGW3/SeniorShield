@@ -1,6 +1,7 @@
 // lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/ftc_alerts_screen.dart';
 import '../screens/settings_screen.dart';
 
@@ -24,6 +25,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _signOut() async {
     await _googleSignIn.signOut();
+
+    // Clear persistent login state
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', false);
+
     if (mounted) {
       Navigator.of(context).pushReplacementNamed('/');
     }
@@ -36,6 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final GoogleSignInAccount? user = await _googleSignIn.signIn();
 
       if (user != null && mounted) {
+        // Save login state
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+
         Navigator.of(context).pushReplacementNamed('/home', arguments: {
           'isLoggedIn': true,
           'user': user,
