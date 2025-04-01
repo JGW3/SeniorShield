@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'widgets/ftc_alerts_view.dart';
+import 'services/background_service.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize background service
+  await BackgroundService.initialize();
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
