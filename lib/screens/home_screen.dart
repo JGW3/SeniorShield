@@ -2,8 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../screens/chat_screen.dart';
+import '../screens/check_number_screen.dart';
 import '../screens/ftc_alerts_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/report_number_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -176,14 +179,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.chat,
                     label: 'Chatbot',
                     description: 'Ask questions about FTC alerts',
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Coming soon!'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    },
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ChatScreen()),
+                      ),
                   ),
 
                   const SizedBox(height: 20),
@@ -198,6 +197,34 @@ class _HomeScreenState extends State<HomeScreen> {
                       MaterialPageRoute(builder: (context) => const FtcAlertsScreen()),
                     ),
                   ),
+
+                  const SizedBox(height: 20),
+
+                  // Check Phone Number Button
+                  _NavigationButton(
+                    icon: Icons.phone,
+                    label: 'Check Phone Number',
+                    description: 'Check phone number is a scam/fraud',
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CheckPhoneNumberScreen()),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Report a phone number button
+                  _NavigationButton(
+                    icon: Icons.warning,
+                    label: 'Report Phone Number',
+                    description: 'Report a Scam Number',
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ReportNumberScreen()),
+                    ),
+                  ),
+
+
                 ],
               ),
             ),
