@@ -9,30 +9,43 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   final ChatService _chatService = ChatService();
-  List<ChatMessage> _messages = [];
+
+  final List<ChatMessage> _messages = [];
+  bool _isSending = false;
 
   void _sendMessage() async {
-
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
-
-    // Store text in a local variable before clearing
-    final userMessage = ChatMessage(text: text, sender: Sender.user);
+    if (text.isEmpty || _isSending) return;
 
     setState(() {
-      _messages.add(userMessage);
+      _isSending = true;
+      _messages.add(ChatMessage(text: text, sender: Sender.user));
       _controller.clear();
     });
 
-    // Send to service and await response
-    final responses = await _chatService.sendMessage(userMessage.text);
+    _scrollToBottom();
 
-    // Add only non-empty bot responses
+    final botReplies = await _chatService.getBotReply(text);
+
     setState(() {
-      _messages.addAll(
-        responses.where((msg) => msg.text.trim().isNotEmpty),
-      );
+      _messages.addAll(botReplies);
+      _isSending = false;
+    });
+
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -41,15 +54,19 @@ class _ChatScreenState extends State<ChatScreen> {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
         decoration: BoxDecoration(
-          color: isUser ? Colors.blue[300] : Colors.grey[300],
+          color: isUser ? Colors.blue[400] : Colors.grey[300],
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           message.text,
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(
+            fontSize: 16,
+            color: isUser ? Colors.white : Colors.black87,
+          ),
         ),
       ),
     );
@@ -58,6 +75,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -69,9 +87,13 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: ListView.builder(
+              controller: _scrollController,
               itemCount: _messages.length,
               padding: const EdgeInsets.all(8),
-              itemBuilder: (context, index) => _buildBubble(_messages[index]),
+              itemBuilder: (context, index) {
+                final message = _messages[index];
+                return _buildBubble(message);
+              },
             ),
           ),
           Divider(height: 1),
@@ -93,7 +115,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 SizedBox(width: 8),
                 IconButton(
                   icon: Icon(Icons.send),
-                  onPressed: _sendMessage,
+                  onPressed: _isSending ? null : _sendMessage,
+                  color: _isSending ? Colors.grey : Theme.of(context).primaryColor,
                 ),
               ],
             ),
