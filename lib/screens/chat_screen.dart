@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/chat_service.dart';
 import '../models/chat_message.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class ChatScreen extends StatefulWidget {
   final String username;
@@ -13,14 +15,52 @@ class _ChatScreenState extends State<ChatScreen> {
   int _offset = 0;
   bool _isLoadingMore = false;
   bool _hasMore = true;
-  final TextEditingController _controller = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  late ChatService _chatService;
-
-  final List<ChatMessage> _messages = [];
+  bool _isSpeakingEnabled = false;
   bool _isSending = false;
 
-  void _sendMessage() async {
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final List<ChatMessage> _messages = [];
+
+  late ChatService _chatService;
+  late stt.SpeechToText _speech;
+  late FlutterTts _flutterTts;
+
+  @override
+  void initState() {
+    super.initState();
+    _chatService = ChatService(widget.username);
+    _loadHistory();
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels <=
+          _scrollController.position.minScrollExtent + 50) {
+        _loadHistory(loadMore: true);
+      }
+    });
+
+    _speech = stt.SpeechToText();
+    _flutterTts = FlutterTts();
+  }
+
+  void _loadHistory({bool loadMore = false}) async {
+    if (_isLoadingMore || !_hasMore) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    final history = await _chatService.fetchRecentHistory(offset: _offset);
+
+    setState(() {
+      _messages.insertAll(0, history);
+      _offset += history.length;
+      _isLoadingMore = false;
+      if (history.isEmpty) _hasMore = false;
+    });
+  }
+
+  void _sendMessage({bool isVoice = false}) async {
     final text = _controller.text.trim();
     if (text.isEmpty || _isSending) return;
 
@@ -39,6 +79,14 @@ class _ChatScreenState extends State<ChatScreen> {
       _isSending = false;
     });
 
+    if (_isSpeakingEnabled && botReplies.isNotEmpty) {
+      for (var msg in botReplies) {
+        if (msg.sender == Sender.bot) {
+          await _flutterTts.speak(msg.text);
+        }
+      }
+    }
+
     _scrollToBottom();
   }
 
@@ -51,23 +99,6 @@ class _ChatScreenState extends State<ChatScreen> {
           curve: Curves.easeOut,
         );
       }
-    });
-  }
-
-  void _loadHistory({bool loadMore = false}) async {
-    if (_isLoadingMore || !_hasMore) return;
-
-    setState(() {
-      _isLoadingMore = true;
-    });
-
-    final history = await _chatService.fetchRecentHistory(offset: _offset);
-
-    setState(() {
-      _messages.insertAll(0, history);
-      _offset += history.length;
-      _isLoadingMore = false;
-      if (history.isEmpty) _hasMore = false;
     });
   }
 
@@ -94,10 +125,18 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  void _toggleSpeaker() {
+    setState(() {
+      _isSpeakingEnabled = !_isSpeakingEnabled;
+    });
+  }
+
   @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
+    _speech.stop();
+    _flutterTts.stop();
     super.dispose();
   }
 
@@ -129,15 +168,23 @@ class _ChatScreenState extends State<ChatScreen> {
                     textInputAction: TextInputAction.newline,
                     maxLines: null,
                     decoration: InputDecoration(
-                      hintText: 'Type a message...',
+                      hintText: 'Type or use voice input...',
                       border: OutlineInputBorder(),
                     ),
+                    onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
-                SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(
+                    Icons.volume_up,
+                    color: _isSpeakingEnabled ? Colors.blue : Colors.grey,
+                  ),
+                  onPressed: _toggleSpeaker,
+                ),
+                SizedBox(width: 4),
                 IconButton(
                   icon: Icon(Icons.send),
-                  onPressed: _isSending ? null : _sendMessage,
+                  onPressed: _isSending ? null : () => _sendMessage(),
                   color: _isSending ? Colors.grey : Theme.of(context).primaryColor,
                 ),
               ],
@@ -146,18 +193,5 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
-  }
-  @override
-  void initState() {
-    super.initState();
-    _chatService = ChatService(widget.username);
-    _loadHistory();
-
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels <=
-          _scrollController.position.minScrollExtent + 50) {
-        _loadHistory(loadMore: true);
-      }
-    });
   }
 }
