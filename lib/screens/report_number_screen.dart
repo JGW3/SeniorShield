@@ -1,5 +1,5 @@
-// lib/screens/report_number_screen.dart
 import 'package:flutter/material.dart';
+import '../services/report_number_service.dart';
 
 class ReportNumberScreen extends StatefulWidget {
   const ReportNumberScreen({Key? key}) : super(key: key);
@@ -12,6 +12,7 @@ class _ReportNumberScreenState extends State<ReportNumberScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final _reportService = ReportNumberService();
 
   String _reportType = 'Scam';
   bool _isSubmitting = false;
@@ -27,15 +28,26 @@ class _ReportNumberScreenState extends State<ReportNumberScreen> {
       _submitted = false;
     });
 
-    await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+    try {
+      await _reportService.submitReport(
+        phone: _phoneController.text.trim(),
+        type: _reportType,
+        description: _descriptionController.text.trim(),
+      );
 
-    setState(() {
-      _isSubmitting = false;
-      _submitted = true;
-      _phoneController.clear();
-      _descriptionController.clear();
-      _reportType = 'Scam';
-    });
+      setState(() {
+        _submitted = true;
+        _phoneController.clear();
+        _descriptionController.clear();
+        _reportType = 'Scam';
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to submit report: $e')),
+      );
+    } finally {
+      setState(() => _isSubmitting = false);
+    }
   }
 
   @override

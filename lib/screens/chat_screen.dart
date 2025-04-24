@@ -3,14 +3,19 @@ import '../services/chat_service.dart';
 import '../models/chat_message.dart';
 
 class ChatScreen extends StatefulWidget {
+  final String username;
+  ChatScreen({required this.username});
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  int _offset = 0;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final ChatService _chatService = ChatService();
+  late ChatService _chatService;
 
   final List<ChatMessage> _messages = [];
   bool _isSending = false;
@@ -27,7 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _scrollToBottom();
 
-    final botReplies = await _chatService.getBotReply(text);
+    final botReplies = await _chatService.sendMessage(text);
 
     setState(() {
       _messages.addAll(botReplies);
@@ -46,6 +51,23 @@ class _ChatScreenState extends State<ChatScreen> {
           curve: Curves.easeOut,
         );
       }
+    });
+  }
+
+  void _loadHistory({bool loadMore = false}) async {
+    if (_isLoadingMore || !_hasMore) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    final history = await _chatService.fetchRecentHistory(offset: _offset);
+
+    setState(() {
+      _messages.insertAll(0, history);
+      _offset += history.length;
+      _isLoadingMore = false;
+      if (history.isEmpty) _hasMore = false;
     });
   }
 
@@ -124,5 +146,18 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+  }
+  @override
+  void initState() {
+    super.initState();
+    _chatService = ChatService(widget.username);
+    _loadHistory();
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels <=
+          _scrollController.position.minScrollExtent + 50) {
+        _loadHistory(loadMore: true);
+      }
+    });
   }
 }

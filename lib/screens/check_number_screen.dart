@@ -21,9 +21,17 @@ class _CheckPhoneNumberScreenState extends State<CheckPhoneNumberScreen> {
   Future<void> _checkNumber() async {
     final phone = _controller.text.trim();
 
+    final phoneRegex = RegExp(r'^\+?\d{7,15}$'); // allows + and 7-15 digits
+
     if (phone.isEmpty) {
       setState(() {
         _error = 'Please enter a phone number.';
+        _result = null;
+      });
+      return;
+    } else if (!phoneRegex.hasMatch(phone)) {
+      setState(() {
+        _error = 'Enter a valid phone number (7–15 digits, optional +).';
         _result = null;
       });
       return;

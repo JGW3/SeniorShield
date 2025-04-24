@@ -181,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     description: 'Ask questions about FTC alerts',
                       onPressed: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ChatScreen()),
+                        MaterialPageRoute(builder: (context) => ChatScreen(username: 'pasan003')),
                       ),
                   ),
 

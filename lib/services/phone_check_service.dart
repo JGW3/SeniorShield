@@ -1,30 +1,26 @@
-// lib/services/phone_check_service.dart
-import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/phone_check_result.dart';
 
 class PhoneCheckService {
-  Future<PhoneCheckResult> checkPhoneNumber(String phone) async {
-    await Future.delayed(const Duration(seconds: 2)); // simulate API delay
+  final String _baseUrl = 'http://10.0.2.2:8000/check-phone';
 
-    // Dummy logic — replace with real API call
-    if (phone.endsWith('000')) {
+  Future<PhoneCheckResult> checkPhoneNumber(String phone) async {
+    final response = await http.post(
+      Uri.parse(_baseUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'phone': phone}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
       return PhoneCheckResult(
-        phoneNumber: phone,
-        status: PhoneCheckStatus.scam,
-        message: 'This number has been reported as a scam.',
-      );
-    } else if (phone.endsWith('123')) {
-      return PhoneCheckResult(
-        phoneNumber: phone,
-        status: PhoneCheckStatus.suspicious,
-        message: 'This number looks suspicious. Be cautious.',
+        phoneNumber: data['phone_number'],
+        status: PhoneCheckStatusExtension.fromString(data['status']),
+        message: data['message'],
       );
     } else {
-      return PhoneCheckResult(
-        phoneNumber: phone,
-        status: PhoneCheckStatus.safe,
-        message: 'No known scam reports for this number.',
-      );
+      throw Exception('Failed to check phone number');
     }
   }
 }
