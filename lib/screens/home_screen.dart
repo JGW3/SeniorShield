@@ -51,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = widget.user;
+    final displayName = (user?.displayName ?? 'there').split(' ').first;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -136,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (!widget.isLoggedIn)
             Padding(
               padding: const EdgeInsets.all(24),
-              child: ElevatedButton.icon(
+              child: OutlinedButton.icon(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -145,8 +146,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 icon: const Icon(Icons.login, size: 28),
                 label: const Text('Sign in', style: TextStyle(fontSize: 20)),
-                style: ElevatedButton.styleFrom(
+                style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                  minimumSize: Size(double.infinity, 56), // Set the width to match navigation buttons
+                  side: BorderSide(color: Theme.of(context).primaryColor, width: 2), // Outline border
                 ),
               ),
             ),
@@ -158,13 +161,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Welcome to SeniorShield',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  Text(
+                    'Hello $displayName 👋',
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 40),
-
+                  const SizedBox(height: 20),
                   _NavigationButton(
                     icon: Icons.chat,
                     label: 'Chat',
