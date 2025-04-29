@@ -6,7 +6,9 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class ChatScreen extends StatefulWidget {
   final String username;
+
   ChatScreen({required this.username});
+
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -102,33 +104,53 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  Widget _buildBubble(ChatMessage message) {
-    final isUser = message.sender == Sender.user;
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
-        decoration: BoxDecoration(
-          color: isUser ? Colors.blue[400] : Colors.grey[300],
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          message.text,
-          style: TextStyle(
-            fontSize: 16,
-            color: isUser ? Colors.white : Colors.black87,
-          ),
-        ),
-      ),
-    );
-  }
-
   void _toggleSpeaker() {
     setState(() {
       _isSpeakingEnabled = !_isSpeakingEnabled;
     });
+  }
+
+  Widget _buildBubble(ChatMessage message) {
+    final isUser = message.sender == Sender.user;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final bgColor = isUser
+        ? colorScheme.primaryContainer
+        : colorScheme.surfaceVariant;
+    final textColor = isUser
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurfaceVariant;
+
+    return Align(
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.8,
+        ),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+            bottomLeft: isUser ? Radius.circular(20) : Radius.circular(0),
+            bottomRight: isUser ? Radius.circular(0) : Radius.circular(20),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: Offset(2, 2),
+            )
+          ],
+        ),
+        child: Text(
+          message.text,
+          style: TextStyle(fontSize: 20, color: textColor), // Larger font size
+        ),
+      ),
+    );
   }
 
   @override
@@ -142,50 +164,81 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: AppBar(title: Text('Chat with Bot')),
+      appBar: AppBar(
+        title: const Text(
+          'Chat with Bot',
+          style: TextStyle(fontSize: 28), // Larger title size
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
               itemCount: _messages.length,
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(16), // Increased padding for larger targets
               itemBuilder: (context, index) {
                 final message = _messages[index];
                 return _buildBubble(message);
               },
             ),
           ),
-          Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
+          const Divider(height: 1),
+          Container(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16), // Increased padding
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
                   child: TextField(
                     controller: _controller,
                     textInputAction: TextInputAction.newline,
                     maxLines: null,
+                    style: TextStyle(
+                      fontSize: 22, // Larger font size
+                      color: colorScheme.onBackground,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Type or use voice input...',
-                      border: OutlineInputBorder(),
+                      hintStyle: TextStyle(fontSize: 18, color: colorScheme.onBackground.withOpacity(0.5)),
+                      filled: true,
+                      fillColor: colorScheme.surfaceVariant.withOpacity(0.5),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18), // Larger padding
                     ),
                     onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
-                IconButton(
-                  icon: Icon(
-                    Icons.volume_up,
-                    color: _isSpeakingEnabled ? Colors.blue : Colors.grey,
-                  ),
-                  onPressed: _toggleSpeaker,
-                ),
-                SizedBox(width: 4),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: _isSending ? null : () => _sendMessage(),
-                  color: _isSending ? Colors.grey : Theme.of(context).primaryColor,
+                const SizedBox(width: 16),
+                Column(
+                  children: [
+                    IconButton(
+                      iconSize: 40, // Larger button size
+                      tooltip: 'Toggle Voice Output',
+                      icon: Icon(
+                        Icons.volume_up,
+                        color: _isSpeakingEnabled
+                            ? colorScheme.primary
+                            : colorScheme.onSurface.withOpacity(0.4),
+                      ),
+                      onPressed: _toggleSpeaker,
+                    ),
+                    IconButton(
+                      iconSize: 40, // Larger button size
+                      tooltip: 'Send Message',
+                      icon: Icon(Icons.send),
+                      onPressed: _isSending ? null : () => _sendMessage(),
+                      color: _isSending
+                          ? colorScheme.onSurface.withOpacity(0.4)
+                          : colorScheme.primary,
+                    ),
+                  ],
                 ),
               ],
             ),

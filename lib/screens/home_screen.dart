@@ -1,16 +1,18 @@
-// lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
 import '../screens/chat_screen.dart';
 import '../screens/check_number_screen.dart';
 import '../screens/ftc_alerts_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/report_number_screen.dart';
+import '../screens/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isLoggedIn;
-  final GoogleSignInAccount? user;
+  final User? user;
 
   const HomeScreen({
     Key? key,
@@ -23,56 +25,42 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   bool _isSigningIn = false;
 
   Future<void> _signOut() async {
+    setState(() {
+      _isSigningIn = true;
+    });
+
+    await _auth.signOut();
     await _googleSignIn.signOut();
 
-    // Clear persistent login state
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', false);
 
     if (mounted) {
+      setState(() {
+        _isSigningIn = false;
+      });
       Navigator.of(context).pushReplacementNamed('/');
-    }
-  }
-
-  Future<void> _signIn() async {
-    setState(() => _isSigningIn = true);
-
-    try {
-      final GoogleSignInAccount? user = await _googleSignIn.signIn();
-
-      if (user != null && mounted) {
-        // Save login state
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isLoggedIn', true);
-
-        Navigator.of(context).pushReplacementNamed('/home', arguments: {
-          'isLoggedIn': true,
-          'user': user,
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign in failed: $e')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isSigningIn = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = widget.user;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SeniorShield'),
+        title: const Text('SeniorShield', style: TextStyle(fontSize: 24)),
         actions: [
-          // Add settings icon before logout
           IconButton(
+            iconSize: 32,
+            tooltip: 'Settings',
             icon: const Icon(Icons.settings),
             onPressed: () {
               Navigator.push(
@@ -80,44 +68,45 @@ class _HomeScreenState extends State<HomeScreen> {
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
             },
-            tooltip: 'Settings',
           ),
           if (widget.isLoggedIn)
             IconButton(
+              iconSize: 32,
+              tooltip: 'Sign out',
               icon: const Icon(Icons.logout),
               onPressed: _signOut,
-              tooltip: 'Sign out',
             ),
         ],
       ),
       body: Column(
         children: [
-          // User profile section
-          if (widget.isLoggedIn && widget.user != null)
+          if (widget.isLoggedIn && user != null)
             Container(
-              padding: const EdgeInsets.all(16),
-              color: Colors.blue.shade50,
+              padding: const EdgeInsets.all(24),
+              color: colorScheme.surfaceVariant.withOpacity(0.4),
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundImage: NetworkImage(widget.user!.photoUrl ?? ''),
-                    radius: 24,
-                    backgroundColor: Colors.grey.shade200,
-                    child: widget.user!.photoUrl == null ? const Icon(Icons.person) : null,
+                    backgroundImage: user.photoURL != null ? NetworkImage(user.photoURL!) : null,
+                    radius: 30,
+                    backgroundColor: colorScheme.onSurface.withOpacity(0.1),
+                    child: user.photoURL == null
+                        ? Icon(Icons.person, size: 30, color: colorScheme.onSurface)
+                        : null,
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 20),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.user!.displayName ?? 'User',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
+                          user.displayName ?? 'User',
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        Text(widget.user!.email),
+                        Text(
+                          user.email ?? '',
+                          style: theme.textTheme.bodyMedium,
+                        ),
                       ],
                     ),
                   ),
@@ -125,106 +114,104 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-          // Status indicator
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            color: widget.isLoggedIn ? Colors.green.shade100 : Colors.orange.shade100,
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+            color: widget.isLoggedIn
+                ? colorScheme.secondaryContainer.withOpacity(0.5)
+                : colorScheme.tertiaryContainer.withOpacity(0.5),
             child: Text(
               widget.isLoggedIn
-                  ? 'Logged in: Your conversations will be saved'
-                  : 'Not logged in: Your conversations will not be saved',
+                  ? 'You are signed in. Your chats will be saved.'
+                  : 'Not signed in. Your chats will not be saved.',
               style: TextStyle(
-                color: widget.isLoggedIn ? Colors.green.shade800 : Colors.orange.shade800,
+                fontSize: 18,
+                color: widget.isLoggedIn
+                    ? colorScheme.onSecondaryContainer
+                    : colorScheme.onTertiaryContainer,
               ),
             ),
           ),
 
-          // Login button for non-logged in users
           if (!widget.isLoggedIn)
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(24),
               child: ElevatedButton.icon(
-                onPressed: _isSigningIn ? null : _signIn,
-                icon: const Icon(Icons.login),
-                label: _isSigningIn
-                    ? const SizedBox(
-                  width: 20, height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-                    : const Text('Sign in with Google'),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  );
+                },
+                icon: const Icon(Icons.login, size: 28),
+                label: const Text('Sign in', style: TextStyle(fontSize: 20)),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
                 ),
               ),
             ),
 
-          // Main content with navigation buttons
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
                     'Welcome to SeniorShield',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 40),
 
-                  // Chatbot button
                   _NavigationButton(
                     icon: Icons.chat,
-                    label: 'Chatbot',
-                    description: 'Ask questions about FTC alerts',
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ChatScreen(username: 'pasan003')),
+                    label: 'Chat',
+                    description: 'Ask questions about scams and alerts',
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatScreen(username: user?.uid ?? 'User'),
                       ),
+                    ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
-                  // FTC Alerts button
                   _NavigationButton(
                     icon: Icons.article,
-                    label: 'FTC Consumer Alerts',
-                    description: 'Browse recent FTC alerts and advisories',
+                    label: 'FTC Alerts',
+                    description: 'Read the latest scam alerts',
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const FtcAlertsScreen()),
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
-                  // Check Phone Number Button
                   _NavigationButton(
                     icon: Icons.phone,
-                    label: 'Check Phone Number',
-                    description: 'Check phone number is a scam/fraud',
+                    label: 'Check Number',
+                    description: 'See if a number is a scam',
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const CheckPhoneNumberScreen()),
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
-                  // Report a phone number button
                   _NavigationButton(
                     icon: Icons.warning,
-                    label: 'Report Phone Number',
-                    description: 'Report a Scam Number',
+                    label: 'Report Number',
+                    description: 'Tell us about a scam number',
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const ReportNumberScreen()),
                     ),
                   ),
-
-
                 ],
               ),
             ),
@@ -250,26 +237,32 @@ class _NavigationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.all(20),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 36),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text(description, style: const TextStyle(fontSize: 14)),
-              ],
+    return Semantics(
+      button: true,
+      label: '$label: $description',
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.all(24),
+          textStyle: const TextStyle(fontSize: 20),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 40),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Text(description, style: const TextStyle(fontSize: 18)),
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.arrow_forward),
-        ],
+            const Icon(Icons.arrow_forward, size: 28),
+          ],
+        ),
       ),
     );
   }

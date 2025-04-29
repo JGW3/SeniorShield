@@ -3,10 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/background_service.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await BackgroundService.initialize();
+  await Firebase.initializeApp();
 
   // Load dark mode preference
   final prefs = await SharedPreferences.getInstance();
@@ -54,6 +56,8 @@ class _MyAppState extends State<MyApp> {
       });
     });
   }
+
+  final metallicBlue = const Color(0xFF3A6EA5); // Steel-like metallic blue
 
   @override
   Widget build(BuildContext context) {

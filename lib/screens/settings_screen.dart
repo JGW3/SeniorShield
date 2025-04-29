@@ -35,26 +35,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _clearData() async {
     final prefs = await _prefs;
-    // Clear only the cache data, not settings
     await prefs.remove('lastFetchTime');
     await prefs.remove('cachedAlerts');
 
     if (!mounted) return;
+    final theme = Theme.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cache cleared successfully')),
+      SnackBar(
+        content: const Text('Cache cleared successfully'),
+        backgroundColor: theme.colorScheme.secondaryContainer,
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
       ),
       body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
           SwitchListTile(
-            title: const Text('Dark Mode'),
+            title: Text(
+              'Dark Mode',
+              style: theme.textTheme.titleMedium,
+            ),
             subtitle: const Text('Switch between light and dark theme'),
             value: _darkMode,
             onChanged: (value) {
@@ -63,10 +74,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
               _saveSettings();
             },
+            secondary: Icon(Icons.dark_mode, color: colorScheme.primary),
           ),
           const Divider(),
           SwitchListTile(
-            title: const Text('Notifications'),
+            title: Text(
+              'Notifications',
+              style: theme.textTheme.titleMedium,
+            ),
             subtitle: const Text('Receive notifications about new alerts'),
             value: _notifications,
             onChanged: (value) {
@@ -75,36 +90,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
               });
               _saveSettings();
             },
+            secondary: Icon(Icons.notifications_active, color: colorScheme.primary),
           ),
           const Divider(),
           ListTile(
-            title: const Text('Clear Cache'),
+            title: Text(
+              'Clear Cache',
+              style: theme.textTheme.titleMedium,
+            ),
             subtitle: const Text('Remove stored alert data'),
-            trailing: const Icon(Icons.delete_outline),
+            trailing: Icon(Icons.delete_outline, color: colorScheme.error),
             onTap: _clearData,
           ),
           const Divider(),
           AboutListTile(
-            icon: const Icon(Icons.info),
+            icon: Icon(Icons.info, color: colorScheme.primary),
             applicationName: 'SeniorShield',
             applicationVersion: '1.0.0',
-            applicationLegalese: '2025 - Available under open source license',
-            aboutBoxChildren: const [
-              SizedBox(height: 10),
+            applicationLegalese: '© 2025 - Open source license',
+            aboutBoxChildren: [
+              const SizedBox(height: 10),
               Text(
-                'SeniorShield helps seniors stay informed about the latest scams and consumer protection issues by displaying Federal Trade Commission (FTC) consumer alerts.',
+                'SeniorShield helps seniors stay informed about the latest scams and consumer protection issues by displaying Federal Trade Commission (FTC) alerts.',
+                style: theme.textTheme.bodyMedium,
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
-                'Information Security: We implement data encryption for all saved conversations and only store data for authenticated users. No personally identifiable information is shared with third parties.',
+                'Information Security: All saved data is encrypted and only available to authenticated users. No personal information is shared with third parties.',
+                style: theme.textTheme.bodyMedium,
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
-                'License: This application is provided as open source software. The FTC content displayed is in the public domain and not subject to copyright.',
+                'License: This app is open source. FTC content is in the public domain.',
+                style: theme.textTheme.bodyMedium,
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
-                'Third-party libraries used in this application are subject to their respective licenses.',
+                'Third-party libraries are licensed under their respective terms.',
+                style: theme.textTheme.bodyMedium,
               ),
             ],
           ),
