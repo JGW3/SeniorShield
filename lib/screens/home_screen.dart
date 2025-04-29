@@ -181,8 +181,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   _NavigationButton(
                     icon: Icons.article,
-                    label: 'FTC Alerts',
-                    description: 'Read the latest scam alerts',
+                    label: 'Alerts',
+                    description: 'Check latest scam alerts',
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const FtcAlertsScreen()),
@@ -206,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _NavigationButton(
                     icon: Icons.warning,
                     label: 'Report Number',
-                    description: 'Tell us about a scam number',
+                    description: 'Report a scam number',
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const ReportNumberScreen()),

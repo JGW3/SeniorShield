@@ -10,7 +10,6 @@ void main() async {
   await BackgroundService.initialize();
   await Firebase.initializeApp();
 
-  // Load dark mode preference
   final prefs = await SharedPreferences.getInstance();
   final darkMode = prefs.getBool('darkMode') ?? false;
 
@@ -29,6 +28,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late bool _darkMode;
 
+  final Color metallicBlue = const Color(0xFF007BA7); // Steel-like metallic blue
+
   @override
   void initState() {
     super.initState();
@@ -37,12 +38,10 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _listenToPreferenceChanges() {
-    // Set up a listener to update theme when settings change
     Future.delayed(const Duration(milliseconds: 100), () async {
       final prefs = await SharedPreferences.getInstance();
       prefs.reload();
 
-      // Check periodically for changes
       Future.doWhile(() async {
         await Future.delayed(const Duration(milliseconds: 500));
         final darkModePref = prefs.getBool('darkMode') ?? false;
@@ -57,26 +56,72 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  final metallicBlue = const Color(0xFF3A6EA5); // Steel-like metallic blue
-
   @override
   Widget build(BuildContext context) {
+    final ThemeData baseLight = ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: metallicBlue,
+        brightness: Brightness.light,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: metallicBlue,
+          textStyle: const TextStyle(fontSize: 18),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: metallicBlue,
+          side: BorderSide(color: metallicBlue, width: 2),
+          textStyle: const TextStyle(fontSize: 18),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: metallicBlue,
+          textStyle: const TextStyle(fontSize: 18),
+        ),
+      ),
+      useMaterial3: true,
+    );
+
+    final ThemeData baseDark = ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: metallicBlue,
+        brightness: Brightness.dark,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: metallicBlue,
+          textStyle: const TextStyle(fontSize: 18),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: metallicBlue,
+          side: BorderSide(color: metallicBlue, width: 2),
+          textStyle: const TextStyle(fontSize: 18),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: metallicBlue,
+          textStyle: const TextStyle(fontSize: 18),
+        ),
+      ),
+      useMaterial3: true,
+    );
+
     return MaterialApp(
       title: 'SeniorShield',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: baseLight,
+      darkTheme: baseDark,
       themeMode: _darkMode ? ThemeMode.dark : ThemeMode.light,
       initialRoute: '/',
       routes: {
