@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.0-171.0.dev
+  sdk: ^3.7.0-171.0.dev
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -38,6 +38,8 @@ dependencies:
   flutter_local_notifications: ^19.0.0
   android_alarm_manager_plus: ^4.0.7
   google_sign_in: ^6.2.1
+  firebase_core: ^3.13.0
+  firebase_auth: ^5.5.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -46,6 +48,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_tts: ^3.7.0
+  speech_to_text: ^7.0.0
+  flutter_native_splash: ^2.3.10
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -69,6 +74,8 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+  assets:
+  - assets/images/seniorShieldLogo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -95,3 +102,14 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: assets/images/seniorShieldLogo.png
+  android: true
+  ios: true
+
+  android_12:
+    image: assets/images/seniorShieldLogo.png
+    icon_background_color: "#ffffff"
+
