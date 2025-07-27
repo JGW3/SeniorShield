@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/chat_service.dart';
+import '../services/huggingface_chat_service.dart';
 import '../models/chat_message.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -24,14 +24,14 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
 
-  late ChatService _chatService;
+  late HuggingFaceChatService _chatService;
   late stt.SpeechToText _speech;
   late FlutterTts _flutterTts;
 
   @override
   void initState() {
     super.initState();
-    _chatService = ChatService(widget.username);
+    _chatService = HuggingFaceChatService(widget.username);
     _loadHistory();
 
     _scrollController.addListener(() {

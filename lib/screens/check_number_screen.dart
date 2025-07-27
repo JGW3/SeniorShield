@@ -134,6 +134,7 @@ class _CheckPhoneNumberScreenState extends State<CheckPhoneNumberScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true, // Handle keyboard properly
       appBar: AppBar(
         title: const Text(
           'Check Phone Number',
@@ -141,16 +142,16 @@ class _CheckPhoneNumberScreenState extends State<CheckPhoneNumberScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100), // Extra bottom padding
         child: Column(
           children: [
-            const SizedBox(height: 32),
+            const SizedBox(height: 16), // Reduced spacing
             const Text(
               'Enter a suspicious phone number to check its safety:',
               style: TextStyle(fontSize: 18),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16), // Reduced spacing
             TextField(
               controller: _controller,
               keyboardType: TextInputType.phone,

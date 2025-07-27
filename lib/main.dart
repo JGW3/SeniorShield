@@ -3,12 +3,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/background_service.dart';
-import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await BackgroundService.initialize();
-  await Firebase.initializeApp();
+  // await Firebase.initializeApp();
 
   final prefs = await SharedPreferences.getInstance();
   final darkMode = prefs.getBool('darkMode') ?? false;

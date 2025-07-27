@@ -60,11 +60,12 @@ class _ReportNumberScreenState extends State<ReportNumberScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true, // Handle keyboard properly
       appBar: AppBar(
         title: const Text('Report a Phone Number', style: TextStyle(fontSize: 22)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100), // Extra bottom padding
         child: Card(
           elevation: 6,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+// import 'package:google_sign_in/google_sign_in.dart';
 
 import '../screens/chat_screen.dart';
 import '../screens/check_number_screen.dart';
@@ -12,7 +12,7 @@ import '../screens/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isLoggedIn;
-  final User? user;
+  final dynamic user;
 
   const HomeScreen({
     Key? key,
@@ -25,8 +25,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  // final FirebaseAuth _auth = FirebaseAuth.instance;
+  // final GoogleSignIn _googleSignIn = GoogleSignIn();
   bool _isSigningIn = false;
 
   Future<void> _signOut() async {
@@ -34,8 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _isSigningIn = true;
     });
 
-    await _auth.signOut();
-    await _googleSignIn.signOut();
+    // await _auth.signOut();
+    // await _googleSignIn.signOut();
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', false);
@@ -155,18 +155,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
           Expanded(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'Hello $displayName 👋',
-                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   _NavigationButton(
                     icon: Icons.chat,
                     label: 'Chat',
@@ -179,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16), // Reduced spacing
 
                   _NavigationButton(
                     icon: Icons.article,
@@ -191,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16), // Reduced spacing
 
                   _NavigationButton(
                     icon: Icons.phone,
@@ -203,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16), // Reduced spacing
 
                   _NavigationButton(
                     icon: Icons.warning,
@@ -214,6 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       MaterialPageRoute(builder: (context) => const ReportNumberScreen()),
                     ),
                   ),
+                  const SizedBox(height: 40), // Bottom spacing for safety
                 ],
               ),
             ),
