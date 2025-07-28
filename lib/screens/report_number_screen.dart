@@ -60,82 +60,126 @@ class _ReportNumberScreenState extends State<ReportNumberScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Report a Phone Number')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              const Text(
-                'Help others by reporting scam or suspicious phone numbers.',
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number',
-                  prefixIcon: Icon(Icons.phone),
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  final cleaned = value?.replaceAll(RegExp(r'\D'), '') ?? '';
-                  if (cleaned.isEmpty) return 'Enter a phone number';
-                  if (cleaned.length != 10) return 'Enter a valid 10-digit U.S. number';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _reportType,
-                decoration: const InputDecoration(
-                  labelText: 'Report Type',
-                  border: OutlineInputBorder(),
-                ),
-                items: _reportTypes.map((type) {
-                  return DropdownMenuItem(value: type, child: Text(type));
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _reportType = value!;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Additional Details (optional)',
-                  border: OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _isSubmitting ? null : _submitReport,
-                  icon: _isSubmitting
-                      ? const SizedBox(
-                    width: 20, height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                      : const Icon(Icons.report),
-                  label: Text(_isSubmitting ? 'Submitting...' : 'Submit Report'),
-                ),
-              ),
-              if (_submitted)
-                const Padding(
-                  padding: EdgeInsets.only(top: 16),
-                  child: Text(
-                    'Thank you! Your report has been submitted.',
-                    style: TextStyle(color: Colors.green),
+      appBar: AppBar(
+        title: const Text('Report a Phone Number', style: TextStyle(fontSize: 22)),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Card(
+          elevation: 6,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Help others by reporting scam or suspicious phone numbers.',
+                    style: TextStyle(fontSize: 18),
                   ),
-                ),
-            ],
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    style: const TextStyle(fontSize: 18),
+                    decoration: InputDecoration(
+                      labelText: 'Phone Number',
+                      prefixIcon: const Icon(Icons.phone),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                    validator: (value) {
+                      final cleaned = value?.replaceAll(RegExp(r'\D'), '') ?? '';
+                      if (cleaned.isEmpty) return 'Enter a phone number';
+                      if (cleaned.length != 10) return 'Enter a valid 10-digit U.S. number';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  DropdownButtonFormField<String>(
+                    value: _reportType,
+                    icon: const Icon(Icons.arrow_drop_down),
+                    decoration: InputDecoration(
+                      labelText: 'Report Type',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surfaceVariant,
+                    ),
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    dropdownColor: Theme.of(context).colorScheme.surface,
+                    items: _reportTypes.map((type) {
+                      return DropdownMenuItem(
+                        value: type,
+                        child: Text(
+                          type,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _reportType = value!;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _descriptionController,
+                    maxLines: 4,
+                    style: const TextStyle(fontSize: 16),
+                    decoration: InputDecoration(
+                      labelText: 'Additional Details (optional)',
+                      alignLabelWithHint: true,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: _isSubmitting ? null : _submitReport,
+                      icon: _isSubmitting
+                          ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: Colors.white,
+                        ),
+                      )
+                          : const Icon(Icons.report),
+                      label: Text(
+                        _isSubmitting ? 'Submitting...' : 'Submit Report',
+                        style: const TextStyle(fontSize: 18),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  if (_submitted)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 20),
+                      child: Center(
+                        child: Text(
+                          '✅ Thank you! Your report has been submitted.',
+                          style: TextStyle(color: Colors.green, fontSize: 16),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

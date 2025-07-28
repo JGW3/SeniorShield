@@ -1,7 +1,7 @@
-// lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -26,27 +26,34 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Check if user has a previous session
       final prefs = await SharedPreferences.getInstance();
       final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
       if (isLoggedIn) {
-        // Try to get currently signed in user
         final GoogleSignInAccount? account = await _googleSignIn.signInSilently();
 
         if (account != null && mounted) {
-          Navigator.of(context).pushReplacementNamed('/home', arguments: {
-            'isLoggedIn': true,
-            'user': account,
-          });
+          final GoogleSignInAuthentication googleAuth = await account.authentication;
+          final AuthCredential credential = GoogleAuthProvider.credential(
+            accessToken: googleAuth.accessToken,
+            idToken: googleAuth.idToken,
+          );
+
+          final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+          final User? firebaseUser = userCredential.user;
+
+          if (firebaseUser != null) {
+            Navigator.of(context).pushReplacementNamed('/home', arguments: {
+              'isLoggedIn': true,
+              'user': firebaseUser,
+            });
+          }
         } else if (mounted) {
-          // If silent sign-in fails, clear the stored preference
           await prefs.setBool('isLoggedIn', false);
         }
       }
-    } catch (e) {
-      // Silent error handling for auto-login
-    } finally {
+    } catch (_) {}
+    finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -56,16 +63,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
 
-      if (googleUser != null && mounted) {
-        // Save login state
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final User? firebaseUser = userCredential.user;
+
+      if (firebaseUser != null && mounted) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
 
-        // Navigate to home screen when signed in
         Navigator.of(context).pushReplacementNamed('/home', arguments: {
           'isLoggedIn': true,
-          'user': googleUser,
+          'user': firebaseUser,
         });
       }
     } catch (e) {
@@ -90,44 +109,77 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('SeniorShield'),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF007BA7),
       ),
-      body: _isLoading ?
-      const Center(child: CircularProgressIndicator()) :
-      Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // App Logo
+              SizedBox(
+                height: 280,
+                width: 280,
+                child: Image.asset('assets/images/seniorShieldLogo.png'), // Ensure this image exists
+              ),
+              const SizedBox(height: 30),
+
               const Text(
                 'Welcome to SeniorShield',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Sign in to save your chatbot conversations',
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
+              // Sign-in button
               ElevatedButton.icon(
                 onPressed: _handleGoogleSignIn,
-                icon: const Icon(Icons.g_mobiledata, size: 24),
-                label: const Text('Sign in with Google'),
+                icon: const Icon(Icons.login, size: 30),
+                label: const Text(
+                  'Sign in with Google',
+                  style: TextStyle(fontSize: 20),
+                ),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  minimumSize: const Size.fromHeight(60),
+                  backgroundColor: const Color(0xFF007BA7),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
-              TextButton(
+
+              // Continue without login button
+              OutlinedButton(
                 onPressed: _continueWithoutLogin,
-                child: const Text('Continue without login'),
+                child: const Text(
+                  'Continue without login',
+                  style: TextStyle(fontSize: 20),
+                ),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(60),
+                  side: const BorderSide(color: const Color(0xFF007BA7), width: 2),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 30),
+
               const Text(
                 'Without logging in, your conversations will not be saved.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
