@@ -164,21 +164,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const Text(
+                    Text(
                       'Protecting seniors from scams',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.black54,
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                       ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       'Welcome to SeniorShield',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Theme.of(context).textTheme.headlineMedium?.color,
                       ),
                       textAlign: TextAlign.center,
                     ),

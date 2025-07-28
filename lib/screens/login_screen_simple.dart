@@ -87,12 +87,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: 30),
-                    const Text(
+                    Text(
                       'Welcome to SeniorShield',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Theme.of(context).textTheme.headlineMedium?.color,
                       ),
                       textAlign: TextAlign.center,
                     ),
