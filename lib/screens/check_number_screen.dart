@@ -1,7 +1,7 @@
 // lib/screens/check_number_screen.dart
 import 'package:flutter/material.dart';
 import '../models/phone_check_result.dart';
-import '../services/phone_check_service.dart';
+import '../services/local_phone_service.dart';
 
 class CheckPhoneNumberScreen extends StatefulWidget {
   const CheckPhoneNumberScreen({Key? key}) : super(key: key);
@@ -12,7 +12,7 @@ class CheckPhoneNumberScreen extends StatefulWidget {
 
 class _CheckPhoneNumberScreenState extends State<CheckPhoneNumberScreen> {
   final TextEditingController _controller = TextEditingController();
-  final PhoneCheckService _service = PhoneCheckService();
+  final LocalPhoneService _service = LocalPhoneService();
 
   bool _isLoading = false;
   String? _error;

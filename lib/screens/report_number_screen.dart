@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/report_number_service.dart';
+import '../services/local_phone_service.dart';
 
 class ReportNumberScreen extends StatefulWidget {
   const ReportNumberScreen({Key? key}) : super(key: key);
@@ -12,7 +12,7 @@ class _ReportNumberScreenState extends State<ReportNumberScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final _reportService = ReportNumberService();
+  final _reportService = LocalPhoneService();
 
   String _reportType = 'Scam';
   bool _isSubmitting = false;

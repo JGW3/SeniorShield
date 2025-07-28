@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter:*)",
+      "Bash(del pubspec.lock)",
+      "Bash(rm:*)",
+      "Bash(taskkill:*)"
+    ],
+    "deny": []
+  }
+}

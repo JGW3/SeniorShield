@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/chat_service.dart';
+import '../services/local_chat_service.dart';
 import '../models/chat_message.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -22,14 +22,14 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
 
-  late ChatService _chatService;
+  late LocalChatService _chatService;
   late stt.SpeechToText _speech;
   late FlutterTts _flutterTts;
 
   @override
   void initState() {
     super.initState();
-    _chatService = ChatService(widget.username);
+    _chatService = LocalChatService(widget.username);
     _loadHistory();
 
     _scrollController.addListener(() {
@@ -41,6 +41,30 @@ class _ChatScreenState extends State<ChatScreen> {
 
     _speech = stt.SpeechToText();
     _flutterTts = FlutterTts();
+    
+    // Send welcome message after initialization
+    _sendWelcomeMessage();
+  }
+
+  void _sendWelcomeMessage() async {
+    // Small delay to ensure everything is initialized
+    Future.delayed(const Duration(milliseconds: 500), () async {
+      final welcomeResponse = await _chatService.sendMessage("hello");
+      
+      setState(() {
+        _messages.addAll(welcomeResponse);
+      });
+      
+      if (_isSpeakingEnabled && welcomeResponse.isNotEmpty) {
+        for (var msg in welcomeResponse) {
+          if (msg.sender == Sender.bot) {
+            await _flutterTts.speak(msg.text);
+          }
+        }
+      }
+      
+      _scrollToBottom();
+    });
   }
 
   void _loadHistory({bool loadMore = false}) async {

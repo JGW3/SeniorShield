@@ -23,7 +23,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email'],
+  );
   bool _isSigningIn = false;
 
   Future<void> _signOut() async {
@@ -167,6 +169,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Logo
+                  Center(
+                    child: Image.asset(
+                      'assets/logo.png',
+                      height: 120,
+                      width: 120,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  
                   const Text(
                     'Welcome to SeniorShield',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -181,7 +194,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     description: 'Ask questions about FTC alerts',
                       onPressed: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ChatScreen(username: 'pasan003')),
+                        MaterialPageRoute(builder: (context) => ChatScreen(
+                          username: widget.user?.email ?? 'guest_user'
+                        )),
                       ),
                   ),
 
