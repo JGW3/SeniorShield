@@ -1,6 +1,16 @@
 # SeniorShield
 
-An app that helps seniors stay informed about the latest scams and consumer protection issues by displaying Federal Trade Commission (FTC) consumer alerts.
+**Graduate Software Engineering Group Project**
+
+An AI-driven fraud prevention mobile app designed specifically for senior citizens, featuring real-time FTC scam alerts, community phone number reporting, and an intelligent chatbot assistant.
+
+## Team Members
+- **John West** - Lead Developer
+- **Mohammed Kushalgarhwala** - Developer  
+- **Pasan Edirisinghe** - Developer
+- **Dr. ABM Rezbaul Islam** - Project Advisor
+
+*Developed as part of Graduate Software Engineering coursework, demonstrating collaborative development practices and mobile application architecture.*
 
 ## Features
 
